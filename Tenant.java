@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
@@ -27,8 +29,27 @@ public class Tenant extends javax.swing.JInternalFrame {
         connect = conn.getConnection();
         
         reloadTenantData();
+        populateTenantComboBox();
     }
+    boolean searchPerformed = false; 
 
+    private void populateTenantComboBox() {
+    try {
+        PreparedStatement pst = connect.prepareStatement("SELECT TenantID FROM tenant");
+        ResultSet rs = pst.executeQuery();
+        
+        TenantID.removeAllItems(); // Remove existing items to avoid duplication
+        
+        while (rs.next()) {
+            String tenantID = rs.getString("TenantID");  // Assuming TenantID is a column in your table
+            TenantID.addItem(tenantID);  // Add tenant ID to ComboBox
+        }
+        
+        
+    } catch (SQLException ex) {
+        Logger.getLogger(Tenant.class.getName()).log(Level.SEVERE, null, ex);
+    }
+}
    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -49,8 +70,8 @@ public class Tenant extends javax.swing.JInternalFrame {
         Email = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jComboBox2 = new javax.swing.JComboBox<>();
+        jComboUType = new javax.swing.JComboBox<>();
+        jComboUNo = new javax.swing.JComboBox<>();
         AddTenant = new javax.swing.JButton();
         UpdateTenant = new javax.swing.JButton();
         DeleteTenant = new javax.swing.JButton();
@@ -58,6 +79,9 @@ public class Tenant extends javax.swing.JInternalFrame {
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
+        Search = new javax.swing.JButton();
+        TenantID = new javax.swing.JComboBox<>();
+        jSeparator2 = new javax.swing.JSeparator();
         jLabel3 = new javax.swing.JLabel();
 
         jPanel1.setBackground(new java.awt.Color(204, 204, 255));
@@ -79,7 +103,15 @@ public class Tenant extends javax.swing.JInternalFrame {
             new String [] {
                 "TenantID", "Last Name", "First Name", "ContactInfo", "Email", "Unit ID"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(TenantTable);
 
         jLabel2.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
@@ -124,12 +156,17 @@ public class Tenant extends javax.swing.JInternalFrame {
         jLabel8.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N
         jLabel8.setText("Unit No.");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
+        jComboUType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboUType.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox2ActionPerformed(evt);
+                jComboUTypeActionPerformed(evt);
+            }
+        });
+
+        jComboUNo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboUNo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboUNoActionPerformed(evt);
             }
         });
 
@@ -177,6 +214,27 @@ public class Tenant extends javax.swing.JInternalFrame {
 
         jSeparator1.setForeground(new java.awt.Color(0, 0, 0));
 
+        Search.setBackground(new java.awt.Color(102, 102, 102));
+        Search.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        Search.setForeground(new java.awt.Color(204, 204, 204));
+        Search.setText("Search");
+        Search.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(51, 51, 51), new java.awt.Color(255, 255, 204)));
+        Search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SearchActionPerformed(evt);
+            }
+        });
+
+        TenantID.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        TenantID.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                TenantIDActionPerformed(evt);
+            }
+        });
+
+        jSeparator2.setBackground(new java.awt.Color(204, 204, 255));
+        jSeparator2.setForeground(new java.awt.Color(0, 0, 0));
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -184,70 +242,68 @@ public class Tenant extends javax.swing.JInternalFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(21, 21, 21)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 645, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel9))
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(94, 94, 94)
-                                .addComponent(jLabel11)))
-                        .addContainerGap())
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel8)
-                                            .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(24, 24, 24))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                        .addComponent(UpdateTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(35, 35, 35)
-                                        .addComponent(DeleteTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(42, 42, 42))))
+                            .addComponent(jLabel10)
+                            .addComponent(jSeparator2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 281, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(LastName, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel4)
-                                    .addComponent(FirstName, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel5)
-                                    .addComponent(ContactNo, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel6)
                                     .addComponent(jLabel7)
-                                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel10)
-                                    .addComponent(Email, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(0, 0, Short.MAX_VALUE))))
+                                    .addComponent(jComboUType, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(39, 39, 39)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jComboUNo, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel8)))))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(94, 94, 94)
-                        .addComponent(AddTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 940, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(AddTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(12, 12, 12)
+                                .addComponent(UpdateTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(DeleteTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(Search, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(jPanel2Layout.createSequentialGroup()
+                                    .addComponent(jLabel9)
+                                    .addGap(18, 18, 18)
+                                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel11)
+                                        .addComponent(TenantID, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(jLabel2)
+                            .addComponent(LastName, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4)
+                            .addComponent(FirstName, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel5)
+                            .addComponent(ContactNo, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel6)
+                            .addComponent(Email, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 940, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(0, 7, Short.MAX_VALUE)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel9)
-                        .addGap(45, 45, 45)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(UpdateTenant)
-                            .addComponent(DeleteTenant))
-                        .addGap(31, 31, 31)
+                            .addComponent(jLabel9)
+                            .addComponent(TenantID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addComponent(Search)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel11)
-                        .addGap(1, 1, 1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(LastName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -269,12 +325,15 @@ public class Tenant extends javax.swing.JInternalFrame {
                             .addComponent(jLabel8))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jComboUType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jComboUNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(jLabel10)
-                        .addGap(45, 45, 45)
-                        .addComponent(AddTenant, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(66, 66, 66)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(AddTenant)
+                            .addComponent(UpdateTenant)
+                            .addComponent(DeleteTenant)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 573, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(24, Short.MAX_VALUE))
         );
@@ -325,7 +384,6 @@ public class Tenant extends javax.swing.JInternalFrame {
         JOptionPane.showMessageDialog(null, "Please fill in all the required fields.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
-
     
     String query = "INSERT INTO tenant (LastName, FirstName, ContactInfo, Email) VALUES (?, ?, ?, ?)";
     
@@ -381,124 +439,154 @@ private void reloadTenantData() {
     }//GEN-LAST:event_AddTenantActionPerformed
 
     private void UpdateTenantActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateTenantActionPerformed
-        String lastname, firstname, contact, email, query = null;
-            lastname = LastName.getText();
-            firstname = FirstName.getText();
-            contact = ContactNo.getText();
-            email = Email.getText();
 
-            if (lastname.isEmpty() && firstname.isEmpty() && contact.isEmpty() && email.isEmpty()) {
-                JOptionPane.showMessageDialog(new JFrame(), "All fields are empty! Please fill in the required information.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if("".equals(LastName.getText())){
-                JOptionPane.showMessageDialog(new JFrame(), "Last Name is require", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if("".equals(FirstName.getText())){
-                JOptionPane.showMessageDialog(new JFrame(), "First Name Address is require", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if("".equals(Email.getText())){
-                JOptionPane.showMessageDialog(new JFrame(), "Email is require", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if("".equals(ContactNo.getText())){
-                JOptionPane.showMessageDialog(new JFrame(), "Contact Number is require", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+    if (!searchPerformed) {
+        JOptionPane.showMessageDialog(null, "Please perform a search first by selecting a Tenant ID.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    String tenantid = TenantID.getSelectedItem().toString();  
 
-            int selectedRow = TenantTable.getSelectedRow(); 
+    if (tenantid == null || tenantid.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Please select a valid Tenant ID", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-            if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(new JFrame(), "No tenant selected to update.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+    String lastName = LastName.getText().trim();
+    String firstName = FirstName.getText().trim();
+    String contactNo = ContactNo.getText().trim();
+    String email = Email.getText().trim();
 
-            int tenantId = (int) TenantTable.getValueAt(selectedRow, 0);
+    if (lastName.isEmpty() || firstName.isEmpty() || contactNo.isEmpty() || email.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "All fields must be filled", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-    PreparedStatement ps = null;
-    try {
-        query = "UPDATE tenant SET LastName = ?, FirstName = ?, ContactInfo = ?, Email = ? WHERE TenantID = ?";
-        ps = connect.prepareStatement(query);  
-        ps.setString(1, lastname);
-        ps.setString(2, firstname);
-        ps.setString(3, contact);
+    String query = "UPDATE tenant SET LastName = ?, FirstName = ?, ContactInfo = ?, Email = ? WHERE TenantID = ?";
+
+    try (PreparedStatement ps = connect.prepareStatement(query)) {
+        // Parameters for the query
+        ps.setString(1, lastName);
+        ps.setString(2, firstName);
+        ps.setString(3, contactNo);
         ps.setString(4, email);
-        ps.setInt(5, tenantId);  
+        ps.setString(5, tenantid);  
 
-        int rowsAffected = ps.executeUpdate();  
+        int rowsAffected = ps.executeUpdate();
+
         if (rowsAffected > 0) {
-            Tenants.setValueAt(lastname, selectedRow, 1);  
-            Tenants.setValueAt(firstname, selectedRow, 2); 
-            Tenants.setValueAt(contact, selectedRow, 3);   
-            Tenants.setValueAt(email, selectedRow, 4);     
+            JOptionPane.showMessageDialog(null, "Tenant updated successfully!");
+            LastName.setText("");
+            FirstName.setText("");
+            ContactNo.setText("");
+            Email.setText("");
+            reloadTenantData(); 
+        } else {
+            JOptionPane.showMessageDialog(null, "No tenant found with the provided ID.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        TenantID.setSelectedItem(null); 
 
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(null, "An error occurred while updating the tenant: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        System.out.println("SQL Error: " + e.getMessage());
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "An unexpected error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        System.out.println("Unexpected Error: " + e.getMessage());
+    }
+    }//GEN-LAST:event_UpdateTenantActionPerformed
+
+    private void DeleteTenantActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteTenantActionPerformed
+        
+        
+        if (!searchPerformed) {
+                JOptionPane.showMessageDialog(null, "Please perform a search first by selecting a Tenant ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+         String tenantid = TenantID.getSelectedItem().toString(); 
+
+    
+    if (tenantid == null || tenantid.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Please select a valid Tenant ID", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    String query = "DELETE FROM tenant WHERE TenantID = ?";
+
+    try (PreparedStatement ps = connect.prepareStatement(query)) {
+        ps.setString(1, tenantid);  
+
+        int rowsAffected = ps.executeUpdate();
+        if (rowsAffected > 0) {
+            
+            TenantID.removeItem(tenantid);
+
+            
             LastName.setText("");
             FirstName.setText("");
             ContactNo.setText("");
             Email.setText("");
 
-            JOptionPane.showMessageDialog(null, "Tenant information updated successfully!");
+            JOptionPane.showMessageDialog(null, "Tenant deleted successfully!");
+            reloadTenantData();
+            
         } else {
             JOptionPane.showMessageDialog(null, "No tenant found with the provided ID.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        TenantID.setSelectedItem(null); 
+
     } catch (SQLException e) {
-        JOptionPane.showMessageDialog(null, "An error occurred while updating the tenant: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, "An error occurred while deleting the tenant: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         System.out.println("SQL Error: " + e.getMessage());
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "An unexpected error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        System.out.println("Unexpected Error: " + e.getMessage());
     }
-    }//GEN-LAST:event_UpdateTenantActionPerformed
 
-    private void DeleteTenantActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DeleteTenantActionPerformed
-        int selectedRow = TenantTable.getSelectedRow();
-
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(null, "No tenant selected to delete.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        Object tenantIdObj = TenantTable.getValueAt(selectedRow, 0);
-
-        if (tenantIdObj == null) {
-            JOptionPane.showMessageDialog(null, "No Tenant ID found for selected row", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int tenantId = 0;
-        try {
-            tenantId = Integer.parseInt(tenantIdObj.toString()); 
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid Tenant ID format.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        String query = "DELETE FROM tenant WHERE TenantID = ?";
-
-        try (PreparedStatement ps = connect.prepareStatement(query)) {
-
-            ps.setInt(1, tenantId);
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected > 0) {
-                ((DefaultTableModel) TenantTable.getModel()).removeRow(selectedRow);
-
-                JOptionPane.showMessageDialog(null, "Tenant deleted successfully!");
-            } else {
-                JOptionPane.showMessageDialog(null, "No tenant found with the provided ID.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "An error occurred while deleting the tenant: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.out.println("SQL Error: " + e.getMessage());
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "An unexpected error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.out.println("Unexpected Error: " + e.getMessage());
-        }
     }//GEN-LAST:event_DeleteTenantActionPerformed
 
-    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
+    private void jComboUNoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboUNoActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox2ActionPerformed
+    }//GEN-LAST:event_jComboUNoActionPerformed
+
+    private void SearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchActionPerformed
+
+
+        try {
+            String tenantid =  TenantID.getSelectedItem().toString();
+            if (tenantid == null || tenantid.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a valid Tenant ID");
+            return;
+        }
+        searchPerformed = true;
+        UpdateTenant.setEnabled(true);
+
+            PreparedStatement pst = connect.prepareStatement("SELECT * FROM tenant WHERE TenantID = ?");
+            pst.setString(1, tenantid);
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next() == true){
+                LastName.setText(rs.getString(2));
+                FirstName.setText(rs.getString(3));
+                ContactNo.setText(rs.getString(4));
+                Email.setText(rs.getString(5));
+            }else{
+                JOptionPane.showMessageDialog(this,"No record found");
+
+            }
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(Tenant.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_SearchActionPerformed
+
+    private void TenantIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TenantIDActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_TenantIDActionPerformed
+
+    private void jComboUTypeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboUTypeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboUTypeActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -508,10 +596,12 @@ private void reloadTenantData() {
     private javax.swing.JTextField Email;
     private javax.swing.JTextField FirstName;
     private javax.swing.JTextField LastName;
+    private javax.swing.JButton Search;
+    private javax.swing.JComboBox<String> TenantID;
     private javax.swing.JTable TenantTable;
     private javax.swing.JButton UpdateTenant;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JComboBox<String> jComboUNo;
+    private javax.swing.JComboBox<String> jComboUType;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -527,5 +617,6 @@ private void reloadTenantData() {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
     // End of variables declaration//GEN-END:variables
 }
